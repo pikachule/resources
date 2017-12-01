@@ -134,3 +134,13 @@ select table_name,space,page_number,page_type from information_schema.innodb_buf
 //缓冲池中的帧缓冲(frame buffer)、缓冲控制对象(buffer control block)记录了一些诸如LRU、锁、等待等信息，需要从额外内存池中申请
 
 ![](http://7xvulr.com1.z0.glb.clouddn.com/806053-20170831131657296-1607923143.png)
+
+### Checkpoint
+
+> 事务-Write Ahead Log策略，当事务提交时，先写重做日志(循环使用)，再修改页。当由于发生宕机而导致数据丢失时，通过重做日志来完成数据恢复(事务的Durability持久性要求)。当数据库运行了几个月甚至几年时，这时发生宕机，重新应用重做日志的时间会非常久，此时恢复的代价也会非常大。Checkpoint目的是解决以下几个问题：
+- 缩短数据库的恢复时间
+- 缓冲池不够用时，将脏页刷新到磁盘
+- 重做日志不可用时，刷新脏页
+> 当数据库发生宕机时，数据库不需要重做所有的日志，因为Checkpoint之前的页都已经刷新回磁盘，数据库只需对Checkpoint后的重做日志进行恢复，这就可以缩短恢复的时间。此外，当缓冲池不够用时，根据LRU算法会溢出最新最少使用的页，若此页为脏页，则强制执行Checkpoint，将脏页刷回磁盘。
+
+
